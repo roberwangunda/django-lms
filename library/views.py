@@ -638,7 +638,7 @@ class StudentDetailView(LoginRequiredMixin, DetailView):
         context = super(StudentDetailView, self).get_context_data(**kwargs)
         context["code"] = Students.objects.filter(student=self.object)
         return context
-# class StudentsDetailView(LoginRequiredMixin, DetailView):
+# class StudentsDetailView(LoginRequiredMixin, DetailView):8
 #     model = Students
 #     fields = "__all__"
 
