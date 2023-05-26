@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'finance.apps.FinanceConfig',
     'bulksms.apps.BulksmsConfig',
     'cal.apps.CalConfig',
+    'payments.apps.PaymentsConfig',
 ]
 
 MIDDLEWARE = [

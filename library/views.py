@@ -620,7 +620,7 @@ class BooksCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         obj = form.save(commit=False)
         book = Books.objects.get(pk=self.request.GET["book"])
-        obj.book = book
+        obj.book = books
         obj.save()
         return redirect("book-list")
 
@@ -632,11 +632,14 @@ class BooksCreateView(LoginRequiredMixin, CreateView):
 
 class StudentDetailView(LoginRequiredMixin, DetailView):
     model = Students
+    fields = "__all__"
     template_name = "student-detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(StudentDetailView, self).get_context_data(**kwargs)
-        context["code"] = Students.objects.filter(student=self.object)
+        context["code",'email'] = Students.objects.filter(student=self.object)
+        context['first_name'] = Students.objects.filter(student=self.object)
+        context['last_name'] = Students.objects.filter(student=self.object)
         return context
 # class StudentsDetailView(LoginRequiredMixin, DetailView):
 #     model = Students
@@ -645,8 +648,8 @@ class StudentDetailView(LoginRequiredMixin, DetailView):
 #     def get_context_data(self, **kwargs):
 #         context = super(StudentsDetailView, self).get_context_data(**kwargs)
 #         context["students"] = Students.objects.filter(code=self.object)
-        # context["items"] = InvoiceItem.objects.filter(invoice=self.object)
-        # return context
+#         # context["items"] = InvoiceItem.objects.filter(invoice=self.object)
+#         return context
 # class BooksCreateView(LoginRequiredMixin,UpdateView):
 #     model = Books
 #     template_name = "library/form_snippet.html"

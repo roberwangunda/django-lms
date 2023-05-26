@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+
+
+<div id="input-nav"><a href="{% url 'home' %}" class="primary1">Home</a> <i>&rsaquo;</i> Students</div>
+
+
+<div class="title-1"><i class="fas fa-user-graduate"></i>Students List</div>
+<div class="title-line"></div>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'error' %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i>{{ message }}
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="fas fa-check-circle"></i>{{ message }}
+</div>
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% block content-header %}
+<form method="POST">
+    {% csrf_token %}
+    <div class="card-header">
+        <h3 class="card-title">
+            <input type="submit" class="btn btn-primary" value="Proceed >">
+        </h3>
+
+        <div class="card-tools">
+            <p class="small btn btn-tool">You can also search by name/class by typing in the search box</p>
+        </div>
+    </div>
+    {% endblock content-header %}
+
+<br>
+    <table id="studenttable" class="table table-sm table-bordered" data-page-length='100'>
+        <thead class="thead-light">
+            <tr>
+                <th><input type="checkbox" id="selecter"></th>
+                <th>Name</th>
+                <th>Current Class</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td><input type="checkbox" id="{{ student.id }}" name="students" value="{{ student.id}}"></td>
+                <td>{{student}} </td>
+                <td>{{student.department}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <input type="submit" class="btn btn-primary mt-2" value="Proceed >">
+
+</form>
+{% endblock content %}
+
+
+{% block ScriptBlock %}
+<script>
+    $(function () {
+        $('#book-tbl').find('td, th').addClass('px-2 py-1 align-middle')
+        $('#book-tbl').DataTable({
+            columnDefs: [{
+                orderable: false,
+                targets: [4]
+            }],
+            lengthMenu: [
+                [5, 50, 100, -1],
+                [5, 50, 100, "All"]
+            ]
+        })
+    })
+
+    $('#studenttable').DataTable({
+        "ordering": false
+    });
+
+    $("#selecter").change(function () {
+        if (this.checked) {
+            $('input[name="students"]').prop('checked', true);
+        }
+        else {
+            $('input[name="students"]').prop('checked', false);
+        }
+    });
+
+</script>
+{% endblock ScriptBlock %}

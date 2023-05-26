@@ -72,3 +72,14 @@ class SemesterForm(forms.ModelForm):
     class Meta:
         model = Semester
         fields = ['term', 'is_current_term', 'session', 'next_term_begins']
+
+
+class CurrentSessionForm(forms.Form):
+    current_session = forms.ModelChoiceField(
+        queryset=Session.objects.all(),
+        help_text='Click <a href="/session/create/?next=current-session/">here</a> to add new session',
+    )
+    current_term = forms.ModelChoiceField(
+        queryset=Semester.objects.all(),
+        help_text='Click <a href="/term/create/?next=current-session/">here</a> to add new term',
+    )

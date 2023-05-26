@@ -44,6 +44,9 @@
 			<li class="{% if request.path == prof %}active{% endif %}">
 				<a href="{% url 'profile' %}"><i class="fas fa-user"></i>Profile</a>
 			</li>
+			<li class="{% if request.path == calendar %}active{% endif %}">
+				<a href="/cal/calendar/"><i class="fas fa-user"></i>Calendar</a>
+			</li>
 
 			{% if request.user.is_superuser %}
 			<li class="{% if request.path == admin_p %}active{% endif %}">
@@ -60,8 +63,11 @@
 			<li class="{% if request.path == notices %}active{% endif %}">
 				<a href="{% url 'add_item' %}"><i class="fas fa-chalkboard"></i>Notices</a>
 			</li>
+			<li class="{% if request.path == invoice %}active{% endif %}">
+				<a href="{% url 'invoice-list' %}"><i class="nav-icon fas fa-money-bill-alt"></i></i>Invoices</a>
+			</li>
 			<li class="{% if request.path == folder %}active{% endif %}">
-				<a href="/folder"><i class="fas fa-chalkboard"></i>Documents</a>
+				<a href="/folder"><i class="nav-icon fas fa-copy"></i>Documents</a>
 
 			</li>
 			
@@ -74,9 +80,12 @@
 			</li>
 			{% endif %}
 
+			<li class="{% if request.path == pro %}active{% endif %}">
+				<a href="{% url 'programs' %}"><i class="fas fa-book-open"></i>Classes & Subjects</a>
+			</li>
 			<!-- librarian section -->
 			<!--  -->
-			{% if request.user.is_librarian or request.user.is_student %}
+			{% if request.user.is_librarian %}
 			<li class="{% if request.path == ucl %}active{% endif %}">
 				<a href="{% url 'home-page' %}"><i class="fas fa-book"></i>Bookstore Dashboard</a>
 			</li>
@@ -110,14 +119,14 @@
 			<li class="{% if request.path == qpr %}active{% endif %}">
 				<a href="{% url 'quiz_progress' %}"><i class="fas fa-record-vinyl"></i>Quiz Progress Rec</a>
 			</li>
+			<li class="{% if request.path == class %}active{% endif %}">
+				<a href="{% url 'class_allocation_view' %}"><i class="fas fa-tasks"></i>Class Allocation</a>
+			</li>
 			<li class="{% if request.path == cav %}active{% endif %}">
 				<a href="{% url 'course_allocation_view' %}"><i class="fas fa-tasks"></i>Subjects Allocation</a>
 			</li>
 			<li class="{% if request.path == sess %}active{% endif %}">
 				<a href="{% url 'session_list' %}"><i class="fas fa-calendar-week"></i>Manage Session</a>
-			</li>
-			<li class="{% if request.path == pro %}active{% endif %}">
-				<a href="{% url 'programs' %}"><i class="fas fa-book-open"></i>Classes & Subjects</a>
 			</li>
 			<li class="{% if request.path == term %}active{% endif %}">
 				<a href="{% url 'term_list' %}"><i class="fas fa-calendar-alt"></i>Manage Term</a>
@@ -159,17 +168,5 @@
 		</ul>
 	</div>
 
-	<footer class="card-footer mt-5 py-3 px-2">
-		<!-- <div class="col-12">
-			<p class="small">
-				Read our <a href="#"> Privacy </a> · <a href="#"> Terms. </a>
-				CodeAdil Admin &copy;
-				<script>document.write(new Date().getFullYear());</script>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit.
-			</p>
-			<a href="https://adilmohak.github.io/adil" class="btn btn-sm btn-primary mx-auto" target="_blank">
-				CodeAdil
-			</a>
-		</div> -->
-	</footer>
+
 </div>

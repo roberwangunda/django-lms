@@ -3,9 +3,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from django.db.models.signals import pre_save
-
 from django.db.models import Q
-
 from app.models import Session
 from .utils import *
 
@@ -51,7 +49,6 @@ class ProgramManager(models.Manager):
             qs = qs.filter(or_lookup).distinct() # distinct() is often necessary with Q lookups
         return qs
 
-
 class Program(models.Model):
     title = models.CharField(max_length=150, unique=True)
     summary = models.TextField(null=True, blank=True)
@@ -64,7 +61,6 @@ class Program(models.Model):
     def get_absolute_url(self):
         return reverse('program_detail', kwargs={'pk': self.pk})
 
-
 class CourseManager(models.Manager):
     def search(self, query=None):
         qs = self.get_queryset()
@@ -76,7 +72,6 @@ class CourseManager(models.Manager):
                         )
             qs = qs.filter(or_lookup).distinct() # distinct() is often necessary with Q lookups
         return qs
-
 
 class Course(models.Model):
     slug = models.SlugField(blank=True, unique=True)
@@ -108,13 +103,11 @@ class Course(models.Model):
         else:
             return False
 
-
 def course_pre_save_receiver(sender, instance, *args, **kwargs):
     if not instance.slug:
         instance.slug = unique_slug_generator(instance)
 
 pre_save.connect(course_pre_save_receiver, sender=Course)
-
 
 class CourseAllocation(models.Model):
     lecturer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='allocated_lecturer')
@@ -182,3 +175,17 @@ def video_pre_save_receiver(sender, instance, *args, **kwargs):
         instance.slug = unique_slug_generator(instance)
 
 pre_save.connect(video_pre_save_receiver, sender=UploadVideo)
+
+
+class ClassAllocation(models.Model):
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='allocated_teacher')
+    classes = models.ManyToManyField(Program, related_name='allocated_program')
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.lecturer.get_full_name
+
+    def get_absolute_url(self):
+        return reverse('edit_allocated_course', kwargs={'pk': self.pk})
+    
+

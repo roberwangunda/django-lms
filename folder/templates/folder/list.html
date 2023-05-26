@@ -80,21 +80,47 @@ ul.breadcrumb li a:hover {
     <li><a href="{{ add_file }}">Upload File</a></li>
 </ul> -->
 
+<div id="input-nav"><a href="/folder" class="primary1">Home</a> <i>&rsaquo;</i>
+  <a href="add/" class="primary1">Create Folder</a> <i>&rsaquo;</i> Add
+</div>
+<a class="btn btn-primary" href="add/"><i class="fas fa-plus"></i> Create New Folder</a>
+<a class="btn btn-primary" href="/file/add/"><i class="fas fa-upload"></i> Add New Files </a>
+
+<!-- <div class="title-line"></div> -->
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>{{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>{{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+
     <div class="container ml20 mt-3">
         <p class="text-muted ">Folders</p>
         <div class="row">
             {% for folder in  folder_list %}
-                <a href="{{ folder.get_list_url }}?id={{ folder.pk }}" class="">
-                    <div class="card card-style">
-                        <div class="card-body">
-                            <h6 class="card-title"><i class="fas fa-folder"></i>
-                                <span style="color:{{ folder.text_color }};" class="ml20">
-                                    {{ folder.name|truncatechars:18 }}
-                                </span>
-                            </h6>
-                        </div>
-                    </div>
-                </a>
+            <div class="column">
+              <a href="{{ folder.get_list_url }}?id={{ folder.pk }}" class="">
+                <div class="card card-style">
+                  <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-folder"></i>
+                      <span style="color:{{ folder.text_color }};" class="ml20">
+                        {{ folder.name|truncatechars:18 }}
+                      </span>
+                    </h6>
+                  </div>
+                </div>
+              </a>
+            </div>
+                
             {% empty %}
             <br>
                 <!-- <p class="text-muted ml40">Sorry, no folders here.</p> -->

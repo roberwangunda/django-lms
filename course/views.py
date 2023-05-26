@@ -8,15 +8,17 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView
 
+
 from accounts.models import User, Student
 from app.models import Session, Semester
 from result.models import TakenCourse
 from accounts.decorators import lecturer_required, student_required
 from .forms import (
     ProgramForm, CourseAddForm, CourseAllocationForm, 
-    EditCourseAllocationForm, UploadFormFile, UploadFormVideo
+    EditCourseAllocationForm, UploadFormFile, UploadFormVideo, 
+    ClassAllocationForm, EditClassAllocationForm
 )
-from .models import Program, Course, CourseAllocation, Upload, UploadVideo
+from .models import Program, Course, CourseAllocation, Upload, UploadVideo, ClassAllocation
 from coursemanagement.models import CourseSetting
 
 
@@ -207,7 +209,6 @@ class CourseAllocationFormView(CreateView):
         for course in selected_courses:
             courses += (course.pk,)
         # print(courses)
-
         try:
             a = CourseAllocation.objects.get(lecturer=lecturer)
         except:
@@ -222,7 +223,6 @@ class CourseAllocationFormView(CreateView):
         context['title'] = "Assign Course | DjangoSMS"
         return context
 
-
 @login_required
 def course_allocation_view(request):
     allocated_courses = CourseAllocation.objects.all()
@@ -230,7 +230,6 @@ def course_allocation_view(request):
         'title': "Course Allocations | DjangoSMS",
         "allocated_courses": allocated_courses
     })
-
 
 @login_required
 @lecturer_required
@@ -258,6 +257,85 @@ def deallocate_course(request, pk):
     course.delete()
     messages.success(request, 'successfully deallocate!')
     return redirect("course_allocation_view")
+
+
+# ########################################################
+
+
+# ########################################################
+# Class Allocation
+# ########################################################
+@method_decorator([login_required], name='dispatch')
+class ClassAllocationFormView(CreateView):
+    form_class = ClassAllocationForm
+    template_name = 'class/class_allocation_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(ClassAllocationFormView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        # if a staff has been allocated a class before update it else create new
+        teacher = form.cleaned_data['teacher']
+        selected_classes = form.cleaned_data['classes']
+        classes = ()
+        for clas in  selected_classes:
+            # print(clas)
+            classes +=(clas.pk,)
+        # print(clas)
+
+        try:
+            a = ClassAllocation.objects.get(teacher=teacher)
+            print(a)
+        except:
+            a = ClassAllocation.objects.create(teacher=teacher)
+        for i in range(0, selected_classes.count()):
+            a.classes.add(classes[i])
+            a.save()
+        return redirect('class_allocation_view')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Assign Class | DjangoSMS"
+        return context
+
+
+@login_required
+def class_allocation_view(request):
+    allocated_classes = ClassAllocation.objects.all()
+    return render(request, 'class/class_allocation_view.html', {
+        'title': "Class Allocations | DjangoSMS",
+        "allocated_classes": allocated_classes
+    })
+
+
+@login_required
+@lecturer_required
+def edit_allocated_class(request, pk):
+    allocated = get_object_or_404(ClassAllocation, pk=pk)
+    if request.method == 'POST':
+        form = EditClassAllocationForm(request.POST, instance=allocated)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'class assigned has been updated.')
+            return redirect('class_allocation_view')
+    else:
+        form = EditClassAllocationForm(instance=allocated)
+
+    return render(request, 'class/class_allocation_form.html', {
+        'title': "Edit Class Allocated | DjangoSMS",
+        'form': form, 'allocated': pk
+    }, )
+
+
+@login_required
+@lecturer_required
+def deallocate_class(request, pk):
+    clas = ClassAllocation.objects.get(pk=pk)
+    clas.delete()
+    messages.success(request, 'successfully deallocate!')
+    return redirect("class_allocation_view")
 # ########################################################
 
 
@@ -389,8 +467,8 @@ def course_registration(request):
             messages.success(request, 'Courses Registered Successfully!')
         return redirect('course_registration')
     else:
-        # student = Student.objects.get(student__pk=request.user.id)
-        student = get_object_or_404(Student, student__id=request.user.id)
+        student = Student.objects.get(student__pk=request.user.id)
+        # student = get_object_or_404(Student, student__id=request.user.id)
         taken_courses = TakenCourse.objects.filter(student__student__id=request.user.id)
         t = ()
         for i in taken_courses:
@@ -465,7 +543,7 @@ def user_course_list(request):
     elif request.user.is_student:
         student = Student.objects.get(student__pk=request.user.id)
         taken_courses = TakenCourse.objects.filter(student__student__id=student.student.id)
-        courses = Course.objects.filter(level=student.level).filter(program__pk=student.department.id)
+        courses = Course.objects.filter(level=student.level).filter(program__pk=student.id)
 
         return render(request, 'course/user_course_list.html', {
             'student': student,

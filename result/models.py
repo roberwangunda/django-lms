@@ -3,7 +3,8 @@ from django.urls import reverse
 
 from accounts.models import Student
 from app.models import *
-from course.models import Course
+from course.models import Course, Program
+from .utils import score_grade
 
 YEARS = (
         (1, '1'),
@@ -271,11 +272,24 @@ class TakenCourse(models.Model):
 
             # return round(cgpa, 2)
 
-
 class Result(models.Model):
+    id = models.AutoField(primary_key=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    gpa = models.FloatField(null=True)
-    cgpa = models.FloatField(null=True)
-    term = models.CharField(max_length=100, choices=SEMESTER)
-    session = models.CharField(max_length=100, blank=True, null=True)
-    level = models.CharField(max_length=25, choices=LEVEL, null=True)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    term = models.ForeignKey(Semester, on_delete=models.CASCADE)
+    current_class = models.ForeignKey(Program, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Course, on_delete=models.CASCADE)
+    test_score = models.IntegerField(default=0)
+    exam_score = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["subject"]
+
+    def __str__(self):
+        return f"{self.student} {self.session} {self.term} {self.subject}"
+
+    def total_score(self):
+        return self.test_score + self.exam_score
+
+    def grade(self):
+        return score_grade(self.total_score())

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+<div id="input-nav"><a href="{% url 'home' %}" class="primary1">Home</a> <i>&rsaquo;</i> Allocation list</div>
+
+{% if request.user.is_superuser %}
+<a class="add-button" href="{% url 'class_allocation' %}"><i class="fas fa-plus"></i>Allocate Now</a>
+{% endif %}
+
+<div class="title-1"><i class="fas fa-tasks"></i>Classes Allocation List</div>
+<div class="title-line"></div>
+
+{% if messages %}
+{% for message in messages %}
+{% if message.tags == 'error' %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i>{{ message }}
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="fas fa-check-circle"></i>{{ message }}
+</div>
+{% endif %}
+{% endfor %}
+{% endif %}
+
+<div class="content-center">
+    <form class="search-form" action="" method="POST">{% csrf_token %}
+        <input class="au-input" type="text" name="lecturer" placeholder="Teacher" value="{{ request.GET.lecturer }}" />
+        <input class="au-input" type="text" name="course" placeholder="Subject" value="{{ request.GET.course }}" />
+        <button class="btn btn-light" type="submit">
+            <i class="fas fa-search"></i> filter
+        </button>
+    </form>
+</div>
+
+<div class="table-responsive table-shadow p-0 mt-5">
+    <table class="table table-light table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Teacher</th>
+                <th>Class Name</th>
+                {% if request.user.is_superuser %}
+                <th>Action</th>
+                {% endif %}
+            </tr>
+        </thead>
+        {% for clas in allocated_classes %}
+        <tbody>
+            <tr>
+                <td> {{ forloop.counter }}.</td>
+                <td><a href="{{ clas.teacher.get_absolute_url }}">{{ clas.teacher.get_full_name }}</a></td>
+                <td>
+                    <div class="flex">{% for i in clas.classes.all %}
+                        <div class="flex"><a class="edit-btn" href="{{ i.get_absolute_url }}">{{ i }}</a></div>
+                        {% endfor %}
+                    </div>
+                </td>
+                {% if request.user.is_superuser %}
+                <td>
+                    <div class="update-delete">
+                        <a href="{% url 'edit_allocated_class' pk=clas.pk %}" class="update" title="Edit or Update">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'class_deallocate' pk=clas.pk %}" class="delete" title="Deallocate">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td></td>
+                <td></td>
+                <td>
+                    <span class="text-danger"><i class="far fa-frown"></i>No Class Allocated.
+                        {% if request.user.is_superuser %}
+                        <a href="{% url 'class_allocation' %}">
+                            <i class="primary" style="font-size: 22px;">
+                                Allocate now
+                            </i>
+                            {% endif %}
+                        </a>
+                    </span>
+                </td>
+            </tr>
+
+        </tbody>
+        {% endfor %}
+    </table>
+</div>
+{% endblock content %}

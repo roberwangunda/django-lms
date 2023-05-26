@@ -11,7 +11,10 @@ from django.utils.decorators import method_decorator
 
 from accounts.decorators import lecturer_required, student_required
 from .forms import SessionForm, SemesterForm, NewsAndEventsForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import DetailView, ListView, View
 from .models import *
+from  accounts.models import *
 
 User = settings.AUTH_USER_MODEL
 
@@ -117,6 +120,25 @@ def session_add_view(request):
     else:
         form = SessionForm()
     return render(request, 'app/session_update.html', {'form': form})
+
+#fetch
+@login_required
+@lecturer_required
+def StudentClassListView(request):
+        student_list = Student.objects.filter(level= request.level)
+        # bulk = {}
+        # for result in student_list:
+                
+        #         print(result)
+        #         students = []
+        #         if result:
+        #             students.append(result)
+
+        context = {"student_list": student_list}
+        return render(request, "course/program_single.html",context)
+
+
+
 
 
 @login_required

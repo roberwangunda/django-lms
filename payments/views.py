@@ -1,247 +1,118 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy 
+from django.views.generic import DetailView, ListView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from django.shortcuts import render
-from django.conf import settings
+from accounts.models import Student
 
-
-from django.http import JsonResponse
-from .models import Invoice
-
-import stripe
-import uuid
-import json
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
-# stripe.ApplePayDomain.create(
-#   domain_name='example.com',
-# )
-
-# def payment_gateways(request):
-# 	print(settings.STRIPE_PUBLISHABLE_KEY)
-# 	context = {
-# 		'key': settings.STRIPE_PUBLISHABLE_KEY
-# 	}
-# 	return render(request, 'payments/payment_gateways.html', context)
+from .forms import InvoiceItemFormset, InvoiceReceiptFormSet, Invoices
+from .models import Payments, InvoiceItem, Receipt
 
 
-def payment_paypal(request):
-	return render(request, 'payments/paypal.html', context={})
+class PaymentsListView(LoginRequiredMixin, ListView):
+    model = Payments
+
+class InvoiceCreateView(LoginRequiredMixin, CreateView):
+    model = Payments
+    fields = "__all__"
+    success_url = "/finance/list"
+
+    def get_context_data(self, **kwargs):
+        context = super(InvoiceCreateView, self).get_context_data(**kwargs)
+        if self.request.POST:
+            context["items"] = InvoiceItemFormset(
+                self.request.POST, prefix="invoiceitem_set"
+            )
+        else:
+            context["items"] = InvoiceItemFormset(prefix="invoiceitem_set")
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["items"]
+        self.object = form.save()
+        if self.object.id != None:
+            if form.is_valid() and formset.is_valid():
+                formset.instance = self.object
+                formset.save()
+        return super().form_valid(form)
 
 
-def payment_stripe(request):
-	return render(request, 'payments/stripe.html', context={})
+class InvoiceDetailView(LoginRequiredMixin, DetailView):
+    model = Payments
+    fields = "__all__"
 
-
-def payment_coinbase(request):
-	return render(request, 'payments/coinbase.html', context={})
-
-
-def payment_paylike(request):
-	return render(request, 'payments/paylike.html', context={})
-
-
-def payment_succeed(request):
-	return render(request, 'payments/payment_succeed.html', context={})
-
-
-# def charge(request):
-# 	if request.method == 'POST':
-# 		charge = stripe.Charge.create(
-# 			amount=500,
-# 			currency='eur',
-# 			description='Payment GetWays',
-# 			source=request.POST['stripeToken']
-# 		)
-# 		return render(request, 'payments/charge.html')
-
-
-
-
-from django.shortcuts import redirect
-from django.views.generic.base import TemplateView
-
-class PaymentGetwaysView(TemplateView):
-    template_name = 'payments/payment_gateways.html'
-
-    def get_context_data(self, **kwargs): # new
-        context = super(PaymentGetwaysView, self).get_context_data(**kwargs)
-        context['key'] = settings.STRIPE_PUBLISHABLE_KEY
-        context['amount'] = 500
-        context['description'] = "Stripe Payment"
-        context['invoice_session'] = self.request.session['invoice_session']
-        print(context['invoice_session'])
+    def get_context_data(self, **kwargs):
+        context = super(InvoiceDetailView, self).get_context_data(**kwargs)
+        context["receipts"] = Receipt.objects.filter(invoice=self.object)
+        context["items"] = InvoiceItem.objects.filter(invoice=self.object)
         return context
 
 
+class InvoiceUpdateView(LoginRequiredMixin, UpdateView):
+    model = Payments
+    fields = ["student", "session", "term", "class_for", "balance_from_previous_term"]
 
-def charge(request): # new
-    if request.method == 'POST':
-        charge = stripe.Charge.create(
-            amount=500,
-            currency='eur',
-            description='A Django charge',
-            source=request.POST['stripeToken']
-        )
-        invoice_code = request.session['invoice_session']
-        invoice = Invoice.objects.get(invoice_code=invoice_code)
-        invoice.payment_complete = True
-        invoice.save()
-        return redirect('completed')
-        # return JsonResponse({"invoice_code": invoice.invoice_code}, status=201)
-        # return render(request, 'payments/charge.html')
-
-
-def create_invoice(request):
-    print(request.is_ajax())
-    if request.method == 'POST':
-        invoice = Invoice.objects.create(
-            user = request.user,
-            amount = request.POST.get('amount'),
-            total=26,
-            invoice_code=str(uuid.uuid4()),
-        )
-        request.session['invoice_session'] = invoice.invoice_code
-        return redirect('payment_gateways')
-    # if request.is_ajax():
-    #     invoice = Invoice.objects.create(
-    #         user = request.user,
-    #         amount = 15,
-    #         total=26,
-    #     )
-    #     return JsonResponse({'invoice': invoice}, status=201) # created
-
-    return render(request, 'invoices.html', context={
-        'invoices': Invoice.objects.filter(user=request.user)
-    })
-
-
-def invoice_detail(request, slug):
-    return render(request, 'invoice_detail.html', context={
-        'invoice': Invoice.objects.get(invoice_code=slug)
-    })
-
-
-def paymentComplete(request):
-    print(request.is_ajax())
-    if request.is_ajax() or request.method == 'POST':
-        invoice_id = request.session['invoice_session']
-        invoice = Invoice.objects.get(id=invoice_id)
-        invoice.payment_complete = True
-        invoice.save()
-        # return redirect('invoice', invoice.invoice_code)
-    body = json.loads(request.body)
-    print('BODY:', body)
-    return JsonResponse('Payment completed!', safe=False)
-
-
-from django.http import JsonResponse
-
-import gopay
-from gopay.enums import Recurrence, PaymentInstrument, BankSwiftCode, Currency, Language
-
-
-def gopay_payment(request):
-    print("\nrequest \n", request.method)
-    # api = gopay.payments({
-    #     'goid': '8302931681',
-    #     'clientId': '1061399163',
-    #     'clientSecret': 'stDTmVXF',
-    #     'isProductionMode': False,
-    #     'scope': gopay.TokenScope.ALL,
-    #     'language': gopay.Language.ENGLISH,
-    #     'timeout': 30
-    # })
-    # # token is retrieved automatically, you don't have to call some method `get_token`
-
-    # response = api.get_status('3000006542')
-    # if response.has_succeed():
-    #     print("hooray, API returned " + str(response))
-    # else:
-    #     print("oops, API returned " + str(response.status_code) + ": " + str(response))
-
-    # payments = gopay.payments({
-    #     'goid': 'my goid',
-    #     'clientId': 'my id',
-    #     'clientSecret': 'my secret',
-    #     'isProductionMode': False
-    # })
-    if request.method == 'POST':
-        user = request.user
-
-        payments = gopay.payments({
-            'goid': '8302931681',
-            'clientId': '1061399163',
-            'clientSecret': 'stDTmVXF',
-            'isProductionMode': False,
-            'scope': gopay.TokenScope.ALL,
-            'language': gopay.Language.ENGLISH,
-            'timeout': 30
-        })
-
-        # recurrent payment must have field ''
-        recurrentPayment = {
-            'recurrence': {
-                'recurrence_cycle': Recurrence.DAILY,
-                'recurrence_period': "7",
-                'recurrence_date_to': '2015-12-31'
-            }
-        }
-
-        # pre-authorized payment must have field 'preauthorization'
-        preauthorizedPayment = {
-            'preauthorization': True
-        }
-
-        response = payments.create_payment({
-            'payer': {
-                'default_payment_instrument': PaymentInstrument.BANK_ACCOUNT,
-                'allowed_payment_instruments': [PaymentInstrument.BANK_ACCOUNT],
-                'default_swift': BankSwiftCode.FIO_BANKA,
-                'allowed_swifts': [BankSwiftCode.FIO_BANKA, BankSwiftCode.MBANK],
-                'contact': {
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'email': user.email,
-                    'phone_number': user.phone,
-                    'city': 'example city',
-                    'street': 'Plana 67',
-                    'postal_code': '373 01',
-                    'country_code': 'CZE',
-                },
-                # 'contact': {
-                #     'first_name': 'Zbynek',
-                #     'last_name': 'Zak',
-                #     'email': 'zbynek.zak@gopay.cz',
-                #     'phone_number': '+420777456123',
-                #     'city': 'C.Budejovice',
-                #     'street': 'Plana 67',
-                #     'postal_code': '373 01',
-                #     'country_code': 'CZE',
-                # },
-            },
-            'amount': 150,
-            'currency': Currency.CZECH_CROWNS,
-            'order_number': '001',
-            'order_description': 'pojisteni01',
-            'items': [
-                {'name': 'item01', 'amount': 50},
-                {'name': 'item02', 'amount': 100},
-            ],
-            'additional_params': [
-                {'name': 'invoicenumber', 'value': '2015001003'}
-            ],
-            'callback': {
-                'return_url': 'http://www.your-url.tld/return',
-                'notification_url': 'http://www.your-url.tld/notify'
-            },
-            'lang': Language.CZECH,  # if lang is not specified, then default lang is used
-        })
-
-        if response.has_succeed():
-            print("\nPayment Succeed\n")
-            print("hooray, API returned " + str(response))
+    def get_context_data(self, **kwargs):
+        context = super(InvoiceUpdateView, self).get_context_data(**kwargs)
+        if self.request.POST:
+            context["receipts"] = InvoiceReceiptFormSet(
+                self.request.POST, instance=self.object
+            )
+            context["items"] = InvoiceItemFormset(
+                self.request.POST, instance=self.object
+            )
         else:
-            print("\nPayment Fail\n")
-            print("oops, API returned " + str(response.status_code) + ": " + str(response))
-        return JsonResponse({"message": str(response)})
-            
-    return JsonResponse({"message": "GET requested"})
+            context["receipts"] = InvoiceReceiptFormSet(instance=self.object)
+            context["items"] = InvoiceItemFormset(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["receipts"]
+        itemsformset = context["items"]
+        if form.is_valid() and formset.is_valid() and itemsformset.is_valid():
+            form.save()
+            formset.save()
+            itemsformset.save()
+        return super().form_valid(form)
+
+
+class InvoiceDeleteView(LoginRequiredMixin, DeleteView):
+    model = Payments
+    success_url = reverse_lazy("invoice-list")
+
+class ReceiptCreateView(LoginRequiredMixin, CreateView):
+    model = Receipt
+    fields = ["amount_paid", "date_paid", "comment"]
+    success_url = reverse_lazy("invoice-list")
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        invoice = Payments.objects.get(pk=self.request.GET["invoice"])
+        obj.invoice = invoice
+        obj.save()
+        return redirect("invoice-list")
+
+    def get_context_data(self, **kwargs):
+        context = super(ReceiptCreateView, self).get_context_data(**kwargs)
+        invoice = Payments.objects.get(pk=self.request.GET["invoice"])
+        context["invoice"] = invoice
+        return context
+
+class ReceiptUpdateView(LoginRequiredMixin, UpdateView):
+    model = Receipt
+    fields = ["amount_paid", "date_paid", "comment"]
+    success_url = reverse_lazy("invoice-list")
+
+
+class ReceiptDeleteView(LoginRequiredMixin, DeleteView):
+    model = Receipt
+    success_url = reverse_lazy("invoice-list")
+
+
+@login_required
+def bulk_invoice(request):
+    return render(request, "finance/bulk_invoice.html")

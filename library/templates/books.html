@@ -104,41 +104,5 @@
         })
     })
 
-    function delete_book(url) {
-
-        var _this = $('#confirm_modal .modal-body')
-        $('.err-msg').remove();
-        var el = $('<div>')
-        el.addClass("alert alert-danger err-msg")
-        el.hide()
-        start_loader()
-        $.ajax({
-            headers: {
-                "X-CSRFToken": "{{csrf_token}}"
-            },
-            url: url,
-            dataType: 'JSON',
-            error: err => {
-                console.log(err)
-                alert("an error occurred.")
-                end_loader()
-            },
-            success: function(resp) {
-                if (resp.status == 'success') {
-                    location.reload()
-                } else if (!!resp.msg) {
-                    el.html(resp.msg)
-                    _this.prepend(el)
-                    el.show()
-                } else {
-                    el.html("An error occurred")
-                    _this.prepend(el)
-                    el.show()
-                }
-                end_loader()
-            }
-
-        })
-    }
 </script>
 {% endblock ScriptBlock %}

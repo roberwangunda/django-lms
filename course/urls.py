@@ -2,6 +2,9 @@ from django.urls import path
 from .views import *
 
 
+from app.views import *
+
+
 urlpatterns = [
     # Program urls
     path('', program_view, name='programs'),
@@ -22,6 +25,13 @@ urlpatterns = [
     path('allocated_course/<int:pk>/edit/', edit_allocated_course, name='edit_allocated_course'),
     path('course/<int:pk>/deallocate/', deallocate_course, name='course_deallocate'),
 
+    # ClassAllocation urls
+    path('class/assign/', ClassAllocationFormView.as_view(), name='class_allocation'),
+    path('class/allocated/', class_allocation_view, name='class_allocation_view'),
+    path('allocated_class/<int:pk>/edit/', edit_allocated_class, name='edit_allocated_class'),
+    path('class/<int:pk>/deallocate/', deallocate_class, name='class_deallocate'),
+
+
     # File uploads urls
     path('course/<slug>/documentations/upload/', handle_file_upload, name='upload_file_view'),
     path('course/<slug>/documentations/<int:file_id>/edit/', handle_file_edit, name='upload_file_edit'),
@@ -38,4 +48,7 @@ urlpatterns = [
     path('course/drop/', course_drop, name='course_drop'),
     
     path('my_courses/', user_course_list, name="user_course_list"),
+
+    #fetch all student in a class 
+    path('students_list/all', StudentClassListView, name="student_all"),
 ]

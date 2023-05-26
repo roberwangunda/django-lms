@@ -12,13 +12,13 @@ from .validators import ASCIIUsernameValidator
 User = settings.AUTH_USER_MODEL
 
 # LEVEL_COURSE = "Level course"
-BACHLOAR_DEGREE = "Lower Secondary"
-MASTER_DEGREE = "Upper Secondary"
+PRIMARY_SCHOOL = "Bachloar"
+HIGH_SCHOOL = "Master"
 
 LEVEL = (
     # (LEVEL_COURSE, "Level course"),
-    (BACHLOAR_DEGREE, "Lower Secondary"),
-    (MASTER_DEGREE, "Upper Secondary"),
+    (PRIMARY_SCHOOL, "Primary education"),
+    (HIGH_SCHOOL, "Secondary education"),
 )
 
 FATHER = "Father"
@@ -50,7 +50,6 @@ class UserManager(models.Manager):
                         )
             qs = qs.filter(or_lookup).distinct() # distinct() is often necessary with Q lookups
         return qs
-
 
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
@@ -136,6 +135,7 @@ class Student(models.Model):
     student = models.OneToOneField(User, on_delete=models.CASCADE)
     # id_number = models.CharField(max_length=20, unique=True, blank=True)
     level = models.CharField(max_length=25, choices=LEVEL, null=True)
+    department = models.ForeignKey(Program, on_delete=models.CASCADE, null=True)
 
     objects = StudentManager()
 

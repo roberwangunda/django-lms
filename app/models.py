@@ -71,7 +71,6 @@ class Session(models.Model):
     def __str__(self):
         return self.session
 
-
 class Semester(models.Model):
     term = models.CharField(max_length=10, choices=SEMESTER, blank=True)
     is_current_term = models.BooleanField(default=False, blank=True, null=True)
@@ -80,3 +79,14 @@ class Semester(models.Model):
 
     def __str__(self):
         return self.term
+    
+class StudentClass(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+
+    class Meta:
+        verbose_name = "Class"
+        verbose_name_plural = "Classes"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name

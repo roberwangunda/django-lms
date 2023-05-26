@@ -14,23 +14,22 @@ urlpatterns = [
     path('result/', include('result.urls')),
     path('search/', include('search.urls')),
     path('quiz/', include('quiz.urls')),
-    path('docs/', include('folder.urls')),
-    # path('fold', include('folder.urls', namespace='main')),
-    # path('folder/', include('folder.urls', namespace='folder')),
+    path('cal/', include('cal.urls')),
+    path('fold/', include('folder.urls', namespace='main')),
+    path('folder/', include('folder.urls', namespace='folder')),
     path('file/', include('file.urls', namespace='file')),
-    # path('calendar/', include('djangocalendar.urls')),
+    # path('payments/', include('payments.urls')),
     # path('calendar/', include('cal.urls')),
     path('accounts/api/', include('accounts.api.urls', namespace='accounts-api')),
     path('bulksms/', include('bulksms.urls')),
     path('admin/', admin.site.urls),
 ]
-
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # handler404 = 'app.views.handler404'
-# handler500 = 'app.views.handler500'z
+# handler500 = 'app.views.handler500'
 # handler400 = 'app.views.handler400'
 
 

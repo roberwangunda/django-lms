@@ -24,6 +24,7 @@ urlpatterns = [
     path('term/add/', semester_add_view, name="add_term"),
     path('term/<int:pk>/edit/', semester_update_view, name="edit_term"),
     path('term/<int:pk>/delete/', semester_delete_view, name="delete_term"),
+    # path('students_list/all', StudentClassList, name="student_all"),
 
     path('dashboard/', dashboard_view, name="dashboard"),
 ]

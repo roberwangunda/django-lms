@@ -3,14 +3,30 @@
 
 {% block title %}invoices{% endblock title %}
 
-{% block breadcrumb %}
-<a class="btn btn-primary" href="{% url 'invoice-create' %}"><i
-    class="fas fa-plus"></i> New Invoice</a>
-<a class="btn btn-primary" href="{% url 'bulk-invoice' %}"><i
-    class="fas fa-upload"></i> Bulk Invoice</a>
-{% endblock breadcrumb %}
-
 {% block content %}
+
+<div id="input-nav"><a href="{% url 'home' %}" class="primary1">Home</a> <i>&rsaquo;</i>
+  <a href="{% url 'invoice-list' %}" class="primary1">Invoice</a> <i>&rsaquo;</i> Add
+</div>
+<a class="btn btn-primary" href="{% url 'invoice-create' %}"><i class="fas fa-plus"></i> New Invoice</a>
+<a class="btn btn-primary" href="{% url 'bulk-invoice' %}"><i class="fas fa-upload"></i> Bulk Invoice</a>
+<div class="title-1">Invoice List</div>
+<div class="title-line"></div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>{{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>{{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
   <div class="table-responsive">
     <table id="invoicetable" class="table table-bordered table-hover">
       <thead class="thead-light">
@@ -34,7 +50,7 @@
             <td>{{ invoice.total_amount_payable | intcomma }}</td>
             <td>{{ invoice.total_amount_paid | intcomma }}</td>
             <td>{{ invoice.balance | intcomma }}</td>
-            <td><a class="btn btn-success btn-sm"
+            <td><a class="btn btn-danger"
                 href="{% url 'receipt-create' %}?invoice={{ invoice.id }}">Add new
                 receipt</a></td>
           </tr>

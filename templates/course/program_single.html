@@ -5,13 +5,13 @@
 {% block content %}
 
 <div id="input-nav"><a href="{% url 'home' %}" class="primary1">Home</a>
-    <a href="{% url 'programs' %}" class="primary1">Class</a> {{ program.title }}
+    <a href="{% url 'programs' %}" class="primary1">Programs</a> {{ program.title }}
 </div>
 
 {% if request.user.is_superuser %}
 <div class="manage-wrap">
     <a class="btn btn-sm btn-primary" href="{% url 'course_add' pk=program.pk %}"><i class="fas fa-plus"></i>Add
-        Subject</a>
+        Course</a>
 </div>
 {% endif %}
 
@@ -39,9 +39,9 @@
 
 <div class="content-center">
     <form class="search-form" action="" method="GET">
-        <input class="au-input" type="text" name="name" placeholder="Subject Name" value="{{ request.GET.name }}" />
-        <input class="au-input" type="text" name="code" placeholder="Subject Code" value="{{ request.GET.code }}" />
-        <input class="au-input" type="number" name="year" placeholder="Subject Year" value="{{ request.GET.year }}" />
+        <input class="au-input" type="text" name="name" placeholder="Course Name" value="{{ request.GET.name }}" />
+        <input class="au-input" type="text" name="code" placeholder="Course Code" value="{{ request.GET.code }}" />
+        <input class="au-input" type="number" name="year" placeholder="Course Year" value="{{ request.GET.year }}" />
         <button class="btn btn-light" type="submit">
             <i class="fas fa-search"></i> filter
         </button>
@@ -54,13 +54,13 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th> Subject Name </th>
-                    <th> Subject Code </th>
+                    <th> Course Name </th>
+                    <th> Course Code </th>
                     <th> Cr.Hr </th>
                     <th> Level </th>
                     <th> Year </th>
-                    <th> Term </th>
-                    <th> Current Term </th>
+                    <th> Semester </th>
+                    <th> Current Semester </th>
                     {% if request.user.is_superuser %}
                     <th>Action</th>
                     {% endif %}
@@ -76,11 +76,11 @@
                     <td>{{ course.credit }}</td>
                     <td>{{ course.level }}</td>
                     <td>{{ course.year }}</td>
-                    <td>{{ course.semester }}</td>
+                    <td>{{ course.term }}</td>
                     <th>
-                        {% if course.is_current_semester == False %}
+                        {% if course.is_current_term == False %}
                         <i class="fas fa-times-circle fa-1-5x danger"></i>
-                        {% elif course.is_current_semester == True %}
+                        {% elif course.is_current_term == True %}
                         <i class="fas fa-check-circle fa-1-5x"></i>
                         {% endif %}
                     </th>

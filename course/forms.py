@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from accounts.models import User
-from .models import Program, Course, CourseAllocation, Upload, UploadVideo
+from .models import Program, Course, CourseAllocation, Upload, UploadVideo, ClassAllocation
 
 # User = settings.AUTH_USER_MODEL
 
@@ -42,7 +42,6 @@ class CourseAllocationForm(forms.ModelForm):
         queryset=Course.objects.all().order_by('level'),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'browser-default checkbox'}),
         required=True,
-        label="Subjects"
     )
     lecturer = forms.ModelChoiceField(
         queryset=User.objects.filter(is_lecturer=True),
@@ -58,7 +57,6 @@ class CourseAllocationForm(forms.ModelForm):
         user = kwargs.pop('user')
         super(CourseAllocationForm, self).__init__(*args, **kwargs)
         self.fields['lecturer'].queryset = User.objects.filter(is_lecturer=True)
-        
 
 
 class EditCourseAllocationForm(forms.ModelForm):
@@ -81,6 +79,51 @@ class EditCourseAllocationForm(forms.ModelForm):
         #    user = kwargs.pop('user')
         super(EditCourseAllocationForm, self).__init__(*args, **kwargs)
         self.fields['lecturer'].queryset = User.objects.filter(is_lecturer=True)
+
+class ClassAllocationForm(forms.ModelForm):
+    classes = forms.ModelMultipleChoiceField(
+        queryset=Program.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'browser-default checkbox'}),
+        required=True,
+        label="Classes"
+    )
+    teacher = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_lecturer=True),
+        widget=forms.Select(attrs={'class': 'browser-default custom-select'}),
+        label="Teacher",
+    )
+
+    class Meta:
+        model = ClassAllocation
+        fields = ['teacher', 'classes']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(ClassAllocationForm, self).__init__(*args, **kwargs)
+        self.fields['teacher'].queryset = User.objects.filter(is_lecturer=True)
+        
+
+
+class EditClassAllocationForm(forms.ModelForm):
+    classes = forms.ModelMultipleChoiceField(
+        queryset=Program.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+    teacher = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_lecturer=True),
+        widget=forms.Select(attrs={'class': 'browser-default custom-select'}),
+        label="Teacher",
+    )
+
+    class Meta:
+        model = ClassAllocation
+        fields = ['teacher', 'classes']
+
+    def __init__(self, *args, **kwargs):
+        #    user = kwargs.pop('user')
+        super(EditClassAllocationForm, self).__init__(*args, **kwargs)
+        self.fields['teacher'].queryset = User.objects.filter(is_lecturer=True)
 
 
 # Upload files to specific course
@@ -105,3 +148,4 @@ class UploadFormVideo(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['title'].widget.attrs.update({'class': 'form-control'})
         self.fields['video'].widget.attrs.update({'class': 'form-control'})
+

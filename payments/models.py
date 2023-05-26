@@ -1,14 +1,64 @@
 from django.db import models
-from django.contrib.auth.views import get_user_model
-from django.contrib.postgres.fields import ArrayField
-from accounts.models import User
+from django.urls import reverse
+from django.utils import timezone
+from app.models import Session, Semester, StudentClass
+from accounts.models import Student
 
-User = get_user_model()
+
+class Payments(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    term = models.ForeignKey(Semester, on_delete=models.CASCADE)
+    class_for = models.ForeignKey(StudentClass, on_delete=models.CASCADE)
+    balance_from_previous_term = models.IntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=[("active", "Active"), ("closed", "Closed")],
+        default="active",
+    )
+
+    class Meta:
+        ordering = ["student", "term"]
+
+    def __str__(self):
+        return f"{self.student}"
+
+    def balance(self):
+        payable = self.total_amount_payable()
+        paid = self.total_amount_paid()
+        return payable - paid
+
+    def amount_payable(self):
+        items = InvoiceItem.objects.filter(invoice=self)
+        total = 0
+        for item in items:
+            total += item.amount
+        return total
+
+    def total_amount_payable(self):
+        return self.balance_from_previous_term + self.amount_payable()
+
+    def total_amount_paid(self):
+        receipts = Receipt.objects.filter(invoice=self)
+        amount = 0
+        for receipt in receipts:
+            amount += receipt.amount_paid
+        return amount
+
+    def get_absolute_url(self):
+        return reverse("invoice-detail", kwargs={"pk": self.pk})
+
+class InvoiceItem(models.Model):
+    invoice = models.ForeignKey(Payments, on_delete=models.CASCADE)
+    description = models.CharField(max_length=200)
+    amount = models.IntegerField()
 
 
-class Invoice(models.Model):
-	user = models.ForeignKey(User, on_delete=models.CASCADE)
-	total = models.FloatField(null=True, blank=True)
-	amount = models.FloatField(null=True, blank=True)
-	payment_complete = models.BooleanField(default=False)
-	invoice_code = models.CharField(max_length=200, blank=True, null=True)
+class Receipt(models.Model):
+    invoice = models.ForeignKey(Payments, on_delete=models.CASCADE)
+    amount_paid = models.IntegerField()
+    date_paid = models.DateField(default=timezone.now)
+    comment = models.CharField(max_length=200, blank=True)
+
+    def __str__(self):
+        return f"Receipt on {self.date_paid}"

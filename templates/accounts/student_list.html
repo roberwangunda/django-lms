@@ -3,13 +3,15 @@
 
 {% block content %}
 
+
 <div id="input-nav"><a href="{% url 'home' %}" class="primary1">Home</a> <i>&rsaquo;</i> Students</div>
 
 {% if request.user.is_superuser %}
 <a class="add-button" href="{% url 'add_student' %}"><i class="fas fa-plus"></i>Add Student</a>
 {% endif %}
 
-<div class="title-1"><i class="fas fa-user-graduate"></i>Students List</div>
+<!-- <div class="title-1"><i class="fas fa-user-graduate"></i>Students List</div> -->
+<a class="add-button" href="/result/create/"><i class="fas fa-minus"></i>Students List</a>
 <div class="title-line"></div>
 
 {% if messages %}
@@ -26,16 +28,15 @@
     {% endfor %}
 {% endif %}
 
-<div class="content-center">
+<!-- <div class="content-center">
     <form class="search-form" action="" method="GET">
         <input class="au-input" type="text" id="student_id" name="student_id" placeholder="ID No." value="{{ request.GET.student_id }}"/>
         <input class="au-input" type="text" name="name" placeholder="Name" value="{{ request.GET.name }}"/>
-        <input class="au-input" type="text" name="department" placeholder="Department" value="{{ request.GET.department }}"/>
         <button class="btn btn-light" type="submit">
             <i class="fas fa-search"></i> filter
         </button>
     </form>
-</div>
+</div> -->
 <!-- <form class="search-form">
     <ul>
         <li class="space-between"><input class="form-control" type="text" name="name" placeholder="Name"></li>
@@ -46,15 +47,27 @@
         </button>
     </ul>
 </form> -->
+<!-- <div class="content-center">
+    <form class="search-form mx-auto" action="" method="GET">{% csrf_token %}
+        <input class="au-input" type="text" name="student_filter" placeholder="Student Id."
+            value="{{ request.GET.name}}" />
+        <button class="btn btn-light" type="submit">
+            <i class="fas fa-search"></i> Filter
+        </button>
+    </form>
+</div>
+-->
 
 <div class="table-responsive table-shadow table-light table-striped m-0 mt-5">
-    <table class="table">
+    <table  id="studenttable" class="table table-sm table-bordered" data-page-length='100'>
         <thead>
             <tr>
+                <th><input type="checkbox" id="selecter"></th>
                 <th>#</th>
                 <th> ID No. </th>
                 <th> Full Name </th>
                 <th> Email </th>
+                <th> Class </th>
                 {% if request.user.is_superuser %}
                 <th> Action </th>
                 {% endif %}
@@ -63,11 +76,12 @@
         <tbody>
             {% for student in object_list %}
             <tr>
+                <td><input type="checkbox" id="{{ student.id }}" name="students" value="{{ student.id}}"></td>
                 <td> {{ forloop.counter }}.</td>
                 <td>{{ student.student.username }} </td>
                 <td><a href="{% url 'profile_single' student.student.id %}">{{ student.student.get_full_name }}</a></td>
                 <td>{{ student.student.email }} </td>
-                <!-- <td>{{ student.department }}</td> -->
+                <td>{{ student.department }}</td>
 
                 {% if request.user.is_superuser %}
                 <td>
@@ -105,5 +119,40 @@
             {% endfor %}
         </tbody>
     </table>
+</form>
 </div>
 {% endblock content %}
+
+
+{% block ScriptBlock %}
+<script>
+    $(function () {
+        $('#book-tbl').find('td, th').addClass('px-2 py-1 align-middle')
+        $('#book-tbl').DataTable({
+            columnDefs: [{
+                orderable: false,
+                targets: [4]
+            }],
+            lengthMenu: [
+                [5, 50, 100, -1],
+                [5, 50, 100, "All"]
+            ]
+        })
+    })
+
+    $('#studenttable').DataTable({
+            "ordering": false
+        });
+
+        $("#selecter").change(function () {
+            if (this.checked) {
+                $('input[name="students"]').prop('checked', true);
+            }
+            else {
+                $('input[name="students"]').prop('checked', false);
+            }
+        });
+
+</script>
+{% endblock ScriptBlock %}
+
